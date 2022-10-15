@@ -17,15 +17,15 @@
 #-Introduced Programs Page
 #-Introduced code Navigation Infrastructure
 
-from tkinter import *
-import numpy as np
 import array
-import serial
 import time
+from tkinter import *
+
+import numpy as np
+import serial
 from JarvArrays import *
 from JarvConfig import *
 
-    
 #array= np.array([])
 SystemPointsArray = np.array([[400,370,515,556,556,550,500,440,225,225,100,400,475,100,100,250,250,250,100,250,336,100,100],
                               [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -233,9 +233,13 @@ def Homepage():
         
 #=================================================================MOVEMENT SEND FUNCTIONS============================================
     def write_read(dada):
+        # print(dada)
         comms.write(bytes(dada, 'utf-8'))
         comms.write(bytes('\n', 'utf-8'))
         #print(str(comms.readline()))
+
+
+
     def LSMove(amt):
         print('LS Move Sent')
         print(amt)
