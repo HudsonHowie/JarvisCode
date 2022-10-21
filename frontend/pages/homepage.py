@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from typing import Any
+
 from backend.JarvisManager import JarvisManager
 
 from .pages import ControlPage, PointsPage, ProgramPage
