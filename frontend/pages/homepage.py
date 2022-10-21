@@ -13,12 +13,11 @@ class Homepage:
         self.master = root
         self.manager = manager
         root.title('Homepage')
-        root.geometry("1400x900")
-        self.frame = ttk.Frame(root, padding="3 3 12 12")
-        self.frame.grid(column=0, row=0, sticky="nsew")
+        root.geometry("800x600")
         root.columnconfigure(0, weight=1)
         root.rowconfigure(0, weight=1)
-
+        self.frame = ttk.Frame(root)
+        self.frame.grid(column=0, row=0, sticky="nsew")
         self.build_buttons()
 
 
@@ -26,6 +25,11 @@ class Homepage:
         Button(self.frame, text="Control", command=lambda: ControlPage.deploy(self.manager, self.master)).grid(column=0, row=0)
         Button(self.frame, text="Programming", command=lambda: ProgramPage.deploy(self.manager, self.master)).grid(column=0, row=1)
         Button(self.frame, text="Points", command=lambda: PointsPage.deploy(self.manager, self.master)).grid(column=0, row=2)
+        Button(self.frame, text="Close all tabs", command= lambda: [
+            ControlPage.destroy_all(self.master),
+            ProgramPage.destroy_all(self.master),
+            PointsPage.destroy_all(self.master)
+        ])
 
 
 

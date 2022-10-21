@@ -1,6 +1,6 @@
 from copy import deepcopy
 from dbm import ndbm
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import numpy as np
 from typing_extensions import Self
@@ -37,12 +37,12 @@ class JarvisBrain:
         return self.memory["movements"]
     
 
-    
-    def teach_movement(self, name: str, movement: 'np.ndarray[tuple, Any]'):
+    def teach_movement(self, name: str, movement: Union[list[float], 'np.ndarray[tuple, Any]']):
         jarvisFileReading.write_memory_point(name, movement)
 
         # debugging, change to simple assignment when confirmed working.
         self.memory = jarvisFileReading.get_memory_numpy()
+
 
     def teach_moveset(self, name: str, moves: list[str]):
         for nme in moves:
