@@ -5,14 +5,18 @@ from frontend.pages.homepage import Homepage
 
 
 def test_backend():
-    manager = JarvisManager.from_socket(None)
+    # socket = serial.Serial(port='COM3', baudrate=9600, timeout=5)
+    socket = None
+    manager = JarvisManager.from_socket(socket)
 
     
     manager.perform_movelist("random_moveset")
 
     
 def test_frontend():
-    manager = JarvisManager.from_socket(None)
+    # socket = serial.Serial(port='COM3', baudrate=9600, timeout=5)
+    socket = None
+    manager = JarvisManager.from_socket(socket)
 
     
     root = Tk()
@@ -23,22 +27,3 @@ def test_frontend():
 
 if __name__ == "__main__":
     test_frontend()
-
-
-
-
-    # 1, 1
-    # 1, 2
-    # 1, 3
-    # ...1, 11
-            
-    # 2, 1
-    # 2, 2
-    # 2, 3
-    # ...2, 11
-            
-    # 3, 1
-    # 3, 2
-    # 3, 3
-    # ...3, 11
-            
