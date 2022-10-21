@@ -1,6 +1,6 @@
 from jarvisBrain import JarvisBrain
 from JarvisManager import JarvisManager
-from jarvisMotors import JarvisMotors
+from jarvisSerialComms import JarvisMotors
 
 
 def gen_random_move():
@@ -20,11 +20,9 @@ def gen_random_move():
 
 
 def test_backend():
-    motors = JarvisMotors(True)
-    brain = JarvisBrain()
-    manager = JarvisManager(motors, brain)
+    manager = JarvisManager.from_socket(None)
 
-    brain.teach_moveset_raw("random_moveset",
+    manager.brain.teach_moveset_raw("random_moveset",
                                 [
                                     gen_random_move(),
                                     gen_random_move(),

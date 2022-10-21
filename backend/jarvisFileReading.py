@@ -37,8 +37,22 @@ def write_motor_config(name: str, val: list[float]):
     json.dump(config, open(os.path.dirname(__file__) + "/config.json", "w"), indent=4)
 
 
-def write_memory_point(name: str, val: Union[list[float], 'np.ndarray[tuple, Any]']):
+def write_output_config(name: str, val: list[float]):
+    config = json.load(open(os.path.dirname(__file__) + "/config.json", "r"))
+
+    # checks that name is in config, throws error otherwises
+    assert name in config["outputs"], f"{name} not in the config's sensor list."
+
+    config["outputs"][name] = val
+
+    json.dump(config, open(os.path.dirname(__file__) + "/config.json", "w"), indent=4)
+
     
+
+    
+
+
+def write_memory_point(name: str, val: Union[list[float], 'np.ndarray[tuple, Any]']):
     # clean up numpy to make it writeable to file
     if type(val) == np.ndarray:
         val = val.tolist() # type: ignore 
@@ -54,7 +68,6 @@ def write_memory_point(name: str, val: Union[list[float], 'np.ndarray[tuple, Any
 
 
 def write_memory_movelist(name: str, moves: list[str]):
-    print(name)
     mem = json.load(open(os.path.dirname(__file__) + "/memory.json", "r"))
     mem["movelists"][name] = moves
     json.dump(mem, open(os.path.dirname(__file__) + "/memory.json", "w"), indent=4)

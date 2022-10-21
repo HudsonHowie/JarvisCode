@@ -1,16 +1,25 @@
-from jarvisBrain import JarvisBrain
-from jarvisMotors import JarvisMotors
+import serial
+
+from backend.jarvisBrain import JarvisBrain
+from backend.jarvisSerialComms import JarvisMotors, JarvisOutputs
 
 
 class JarvisManager:
 
     motors: JarvisMotors
+    outputs: JarvisOutputs
     brain: JarvisBrain
 
 
-    def __init__(self, controller: JarvisMotors, brain: JarvisBrain):
+    def __init__(self, controller: JarvisMotors, outputs: JarvisOutputs, brain: JarvisBrain):
         self.motors = controller
         self.brain = brain
+        self.outputs = outputs
+
+
+    @classmethod
+    def from_socket(cls, socket: serial.Serial | None):
+        return cls(JarvisMotors(socket), JarvisOutputs(socket), JarvisBrain())
 
 
     def goto_move(self, name: str):
@@ -18,7 +27,7 @@ class JarvisManager:
      
         tmp = self.brain.memory["movements"][name]
         index = 0  
-        for motor in self.motors.config["motors"]:
+        for motor in self.motors.motor_info:
             self.motors.move_motor(motor, tmp[index])
             index += 1
 
