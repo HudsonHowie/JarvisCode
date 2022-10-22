@@ -1,3 +1,4 @@
+from typing import Union
 import serial
 
 from backend.jarvisBrain import JarvisBrain
@@ -18,7 +19,7 @@ class JarvisManager:
 
 
     @classmethod
-    def from_socket(cls, socket: serial.Serial | None):
+    def from_socket(cls, socket: Union[serial.Serial, None]):
         return cls(JarvisMotors(socket), JarvisOutputs(socket), JarvisBrain())
 
 

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 
@@ -13,15 +13,15 @@ class JarvisBrain:
         self.memory = jarvisFileReading.get_memory_numpy()
     
         
-    def get_move_names(self) -> list[str]:
+    def get_move_names(self) -> List[str]:
         return self.memory["movements"].keys()
     
 
-    def get_movelist_names(self) -> list[str]:
+    def get_movelist_names(self) -> List[str]:
         return self.memory["movelist"].keys()
  
     
-    def get_moves(self) -> Dict[str, list[float]]:
+    def get_moves(self) -> Dict[str, List[float]]:
         tmp: dict[str, 'np.ndarray[tuple, Any]'] = self.memory["movements"]
 
         tmp1 = dict()
@@ -30,7 +30,7 @@ class JarvisBrain:
         return tmp1
 
          
-    def get_movelists(self) -> Dict[str, list[str]]:
+    def get_movelists(self) -> Dict[str, List[str]]:
         return self.memory["movelists"]
  
 
@@ -59,14 +59,14 @@ class JarvisBrain:
  
     
 
-    def teach_movement(self, name: str, movement: Union[list[float], 'np.ndarray[tuple, Any]']):
+    def teach_movement(self, name: str, movement: Union[List[float], 'np.ndarray[tuple, Any]']):
         jarvisFileReading.write_memory_point(name, movement)
 
         # debugging, change to simple assignment when confirmed working.
         self.memory = jarvisFileReading.get_memory_numpy()
 
 
-    def teach_movelist(self, name: str, moves: list[str]):
+    def teach_movelist(self, name: str, moves: List[str]):
         for nme in moves:
             assert nme in self.memory["movements"], f"Unknown move: \"{nme}\". Cannot build moveset without knowing all moves."
        
@@ -76,8 +76,8 @@ class JarvisBrain:
         self.memory = jarvisFileReading.get_memory_numpy()
 
 
-    def teach_movelist_raw(self, name: str, moves: list['np.ndarray[tuple, Any]']):
-        names: list[str] = []
+    def teach_movelist_raw(self, name: str, moves: List['np.ndarray[tuple, Any]']):
+        names: List[str] = []
         for idx, move in enumerate(moves):
             tmp = f"{name}_{idx}"
             self.teach_movement(tmp, move)

@@ -16,8 +16,8 @@ def test_backend():
 
     
 def test_frontend():
-    socket = serial.Serial(port='COM3', baudrate=9600, timeout=5)
-    # socket = None
+    # socket = serial.Serial(port='COM3', baudrate=9600, timeout=5)
+    socket = None
     manager = JarvisManager.from_socket(socket)
 
     

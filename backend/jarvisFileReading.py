@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 
@@ -12,8 +12,7 @@ def get_config() -> Dict[str, Any]:
         return json.load(f)
 
 
-
-def get_memory() -> Dict[str, list[float]]:
+def get_memory() -> Dict[str, List[float]]:
     with open(os.path.dirname(__file__) + "/memory.json", "r") as f:
         return json.load(f)
 
@@ -26,7 +25,7 @@ def get_memory_numpy() -> Dict[str, 'np.ndarray[tuple, Any]']:
         return memory
 
 
-def write_motor_config(name: str, val: list[float]):
+def write_motor_config(name: str, val: List[float]):
     config = json.load(open(os.path.dirname(__file__) + "/config.json", "r"))
 
     # checks that name is in config, throws error otherwises
@@ -37,7 +36,7 @@ def write_motor_config(name: str, val: list[float]):
     json.dump(config, open(os.path.dirname(__file__) + "/config.json", "w"), indent=4)
 
 
-def write_output_config(name: str, val: list[float]):
+def write_output_config(name: str, val: List[float]):
     config = json.load(open(os.path.dirname(__file__) + "/config.json", "r"))
 
     # checks that name is in config, throws error otherwises
@@ -48,7 +47,7 @@ def write_output_config(name: str, val: list[float]):
     json.dump(config, open(os.path.dirname(__file__) + "/config.json", "w"), indent=4)
 
     
-def write_memory_point(name: str, val: Union[list[float], 'np.ndarray[tuple, Any]']):
+def write_memory_point(name: str, val: Union[List[float], 'np.ndarray[tuple, Any]']):
     # clean up numpy to make it writeable to file
     if type(val) == np.ndarray:
         val = val.tolist() # type: ignore 
@@ -63,7 +62,7 @@ def write_memory_point(name: str, val: Union[list[float], 'np.ndarray[tuple, Any
     json.dump(mem, open(os.path.dirname(__file__) + "/memory.json", "w"), indent=4)
 
 
-def write_memory_movelist(name: str, moves: list[str]):
+def write_memory_movelist(name: str, moves: List[str]):
     mem = json.load(open(os.path.dirname(__file__) + "/memory.json", "r"))
     mem["movelists"][name] = moves
     json.dump(mem, open(os.path.dirname(__file__) + "/memory.json", "w"), indent=4)

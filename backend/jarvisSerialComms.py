@@ -1,7 +1,8 @@
 import os
-from typing import Dict, Literal
+from typing import Dict, List, Union
 
 import serial
+from typing_extensions import Literal
 
 from backend import jarvisFileReading
 
@@ -11,7 +12,7 @@ class JarvisComms:
     _debug: bool
     comms: serial.Serial
 
-    def __init__(self, com: serial.Serial | None):
+    def __init__(self, com: Union[serial.Serial, None]):
         if com:
             self.comms = com 
             self._debug = False
@@ -29,18 +30,18 @@ class JarvisComms:
 
 class JarvisMotors(JarvisComms):
     
-    motor_info: Dict[str, list[float]]
+    motor_info: Dict[str, List[float]]
 
-    def __init__(self, com: serial.Serial | None):
+    def __init__(self, com: Union[serial.Serial, None]):
         super().__init__(com)
         self.motor_info = jarvisFileReading.get_config()["motors"]
 
 
-    def get_motor_info(self) ->  Dict[str, list[float]]:
+    def get_motor_info(self) ->  Dict[str, List[float]]:
         return self.motor_info
       
     
-    def get_motor_names(self) -> list[str]:
+    def get_motor_names(self) -> List[str]:
         return self.motor_info.keys()  # type: ignore
 
  
@@ -82,7 +83,7 @@ class JarvisOutputs(JarvisComms):
 
     outputs: Dict[str, float]
 
-    def __init__(self, com: serial.Serial | None):
+    def __init__(self, com: Union[serial.Serial, None]):
         super().__init__(com)
 
         self.outputs = jarvisFileReading.get_config()["outputs"]
@@ -92,7 +93,7 @@ class JarvisOutputs(JarvisComms):
         return self.outputs
       
     
-    def get_output_names(self) -> list[str]:
+    def get_output_names(self) -> List[str]:
         return self.outputs.keys()  # type: ignore
         
 

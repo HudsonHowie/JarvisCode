@@ -2,6 +2,7 @@ import math
 from abc import ABC, abstractmethod
 from tkinter import *
 from tkinter import ttk
+from typing import Dict, List, Tuple
 
 from backend.JarvisManager import JarvisManager
 from frontend.custom_classes import EntryWithPlaceholder, ReorderableListbox
@@ -40,7 +41,7 @@ class BasePage(Toplevel, ABC):
 class MoveListPage(BasePage):
 
     raw_title = "Move List Page"
-    movelist: dict[str, list[Label]]
+    movelist: Dict[str, List[Label]]
 
     
 
@@ -80,7 +81,7 @@ class MoveListPage(BasePage):
 
         return child_frame
 
-    def build_moveset_frame(self, name: str, moves: list[str], frame: ttk.Frame):
+    def build_moveset_frame(self, name: str, moves: List[str], frame: ttk.Frame):
         child_frame = ttk.Frame(frame)
         child_frame.grid_rowconfigure(0, weight=1)
         child_frame.grid_columnconfigure(0, weight=1)
@@ -120,7 +121,7 @@ class MoveListPage(BasePage):
             save_moveset(event)
 
         def save_moveset(event):
-            items: list[str] = listbox.get(0, END)
+            items: List[str] = listbox.get(0, END)
             self.manager.brain.teach_movelist(name, items)
 
         def delete_selected(event):
@@ -167,7 +168,7 @@ class MoveListPage(BasePage):
 
         
         def _find_container(event, name: str):
-            containers: list[Frame] = []
+            containers: List[Frame] = []
             for child_frame in movelist_frame.winfo_children():
                 for widget in child_frame.winfo_children():
                     if type(widget) == Frame:
@@ -240,7 +241,7 @@ class MoveListPage(BasePage):
 class ControlPage(BasePage):
 
     raw_title = "Control Page"
-    slides: dict[str, Scale]
+    slides: Dict[str, Scale]
 
     def setup(self, **kwargs):
         self.slides = dict()
@@ -249,7 +250,7 @@ class ControlPage(BasePage):
         self.build_motor_contol_panel(frame)
         self.build_other_buttons(frame)
 
-    def build_motor_button_set(self, frame_canvas: ttk.Frame, info: tuple[str, list[float]],  c: int, r: int):
+    def build_motor_button_set(self, frame_canvas: ttk.Frame, info: Tuple[str, List[float]],  c: int, r: int):
         slide = Scale(frame_canvas, fg='white', bg='#26343E', label=info[0] + ' Control',
                       width=20, length=300, from_=info[1][1], to=info[1][2], orient="horizontal")
         slide.grid(column=c, row=r, sticky="we")
@@ -372,7 +373,7 @@ class PointsPage(BasePage):
 
     raw_title = "Points Page"
 
-    points: list[tuple[StringVar, StringVar]]
+    points: List[Tuple[StringVar, StringVar]]
     button_frame: Frame
 
     def setup(self, **kwargs):
