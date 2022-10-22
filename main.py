@@ -27,5 +27,23 @@ def test_frontend():
     root.mainloop()
  
 
+def test():
+    import tkinter
+    from tkinter import ttk
+
+    root = tkinter.Tk()
+
+    style = ttk.Style()
+    style.map("C.TButton",
+        foreground=[('pressed', 'red'), ('active', 'blue')],
+        background=[('pressed', '!disabled', 'black'), ('active', 'white')]
+        )
+
+    colored_btn = ttk.Button(text="Test", style="C.TButton").pack()
+
+    root.mainloop()
+
 if __name__ == "__main__":
+ 
+    # test()
     test_frontend()

@@ -1,9 +1,10 @@
 import tkinter as tk
+from tkinter import ttk
 
 
 class EntryWithPlaceholder(tk.Entry):
     def __init__(self, master=None, placeholder="PLACEHOLDER", color='grey', **kwargs):
-        super().__init__(master, **kwargs)
+        tk.Entry.__init__(self, master, **kwargs)
 
         self.placeholder = placeholder
         self.placeholder_color = color

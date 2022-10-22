@@ -1,4 +1,5 @@
 from typing import Union
+
 import serial
 
 from backend.jarvisBrain import JarvisBrain
