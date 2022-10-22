@@ -2,8 +2,8 @@ from tkinter import Tk
 
 import serial
 
-from backend import JarvisBrain, JarvisManager, JarvisMotors
-from frontend.pages.homepage import Homepage
+from backend import JarvisManager
+from frontend import Homepage
 
 
 def test_backend():

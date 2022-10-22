@@ -1,7 +1,6 @@
 import os
-from typing import Any, Dict, Literal, Tuple
+from typing import Dict, Literal
 
-import numpy as np
 import serial
 
 from backend import jarvisFileReading

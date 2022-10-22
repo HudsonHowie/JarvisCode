@@ -22,7 +22,7 @@ class JarvisManager:
         return cls(JarvisMotors(socket), JarvisOutputs(socket), JarvisBrain())
 
 
-    def goto_move(self, name: str):
+    def perform_move(self, name: str):
         assert name in self.brain.memory["movements"], f"{name} not in memory's moveset."    
      
         tmp = self.brain.memory["movements"][name]
@@ -34,5 +34,5 @@ class JarvisManager:
     def perform_movelist(self, name: str):
         assert name in self.brain.memory["movelists"], f"{name} not in memory's movelists."    
         for movename in self.brain.memory["movelists"][name]:
-            self.goto_move(movename)
+            self.perform_move(movename)
     

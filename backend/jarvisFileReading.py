@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Annotated, Any, Dict, Tuple, Union
+from typing import Any, Dict, Union
 
 import numpy as np
 
@@ -48,10 +48,6 @@ def write_output_config(name: str, val: list[float]):
     json.dump(config, open(os.path.dirname(__file__) + "/config.json", "w"), indent=4)
 
     
-
-    
-
-
 def write_memory_point(name: str, val: Union[list[float], 'np.ndarray[tuple, Any]']):
     # clean up numpy to make it writeable to file
     if type(val) == np.ndarray:
@@ -70,6 +66,17 @@ def write_memory_point(name: str, val: Union[list[float], 'np.ndarray[tuple, Any
 def write_memory_movelist(name: str, moves: list[str]):
     mem = json.load(open(os.path.dirname(__file__) + "/memory.json", "r"))
     mem["movelists"][name] = moves
+    json.dump(mem, open(os.path.dirname(__file__) + "/memory.json", "w"), indent=4)
+
+
+def delete_movement(name: str):
+    mem = json.load(open(os.path.dirname(__file__) + "/memory.json", "r"))
+    del mem["movements"][name]
+    json.dump(mem, open(os.path.dirname(__file__) + "/memory.json", "w"), indent=4)
+ 
+def delete_movelist(name: str):
+    mem = json.load(open(os.path.dirname(__file__) + "/memory.json", "r"))
+    del mem["movelists"][name]
     json.dump(mem, open(os.path.dirname(__file__) + "/memory.json", "w"), indent=4)
 
 

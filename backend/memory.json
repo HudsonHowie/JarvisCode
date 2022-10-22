@@ -1,12 +1,16 @@
 {
     "movelists": {
-        "first_test": [
-            "first"
-        ],
         "random_moveset": [
+            "first",
             "random_moveset_0",
             "random_moveset_1",
-            "random_moveset_2"
+            "random_moveset_2",
+            "second",
+            "first"
+        ],
+        "test": [
+            "first",
+            "fourth"
         ]
     },
     "movements": {
@@ -159,6 +163,31 @@
             357,
             331,
             500
+        ],
+        "fourth": [
+            444,
+            446,
+            487,
+            1293,
+            1544,
+            433,
+            342,
+            421,
+            250,
+            253,
+            324,
+            345,
+            422,
+            482,
+            49,
+            326,
+            401,
+            362,
+            369,
+            352,
+            281,
+            179,
+            411
         ]
     }
 }

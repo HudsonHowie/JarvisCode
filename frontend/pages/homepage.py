@@ -1,10 +1,9 @@
 from tkinter import *
 from tkinter import ttk
-from typing import Any
 
 from backend.JarvisManager import JarvisManager
 
-from .pages import ControlPage, PointsPage, ProgramPage
+from .pages import ControlPage, MoveListPage, PointsPage, ProgramPage
 
 
 class Homepage:
@@ -23,13 +22,15 @@ class Homepage:
 
     def build_buttons(self):
         Button(self.frame, text="Control", command=lambda: ControlPage.deploy(self.manager, self.master)).grid(column=0, row=0)
-        Button(self.frame, text="Programming", command=lambda: ProgramPage.deploy(self.manager, self.master)).grid(column=0, row=1)
-        Button(self.frame, text="Points", command=lambda: PointsPage.deploy(self.manager, self.master)).grid(column=0, row=2)
+        Button(self.frame, text="Movelists", command=lambda: MoveListPage.deploy(self.manager, self.master)).grid(column=0, row=1)
+        Button(self.frame, text="Programming", command=lambda: ProgramPage.deploy(self.manager, self.master)).grid(column=0, row=2)
+        Button(self.frame, text="Points", command=lambda: PointsPage.deploy(self.manager, self.master)).grid(column=0, row=3)
         Button(self.frame, text="Close all tabs", command= lambda: [
             ControlPage.destroy_all(self.master),
             ProgramPage.destroy_all(self.master),
-            PointsPage.destroy_all(self.master)
-        ])
+            PointsPage.destroy_all(self.master),
+            MoveListPage.destroy_all(self.master)
+        ]).grid(column=0, row=4)
 
 
 
