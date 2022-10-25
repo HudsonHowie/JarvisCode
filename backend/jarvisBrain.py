@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Union
 
 import numpy as np
 
-from backend import jarvisFileReading
+from . import jarvisFileReading
 
 
 class JarvisBrain:

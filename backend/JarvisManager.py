@@ -2,8 +2,8 @@ from typing import Union
 
 import serial
 
-from backend.jarvisBrain import JarvisBrain
-from backend.jarvisSerialComms import JarvisMotors, JarvisOutputs
+from .jarvisBrain import JarvisBrain
+from .jarvisSerialComms import JarvisMotors, JarvisOutputs
 
 
 class JarvisManager:

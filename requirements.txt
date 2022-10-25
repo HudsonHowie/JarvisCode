@@ -2,4 +2,4 @@ typing_extensions
 tk
 numpy 
 pyserial
-pydub
+pyttsx3
