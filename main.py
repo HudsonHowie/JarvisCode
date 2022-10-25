@@ -1,9 +1,11 @@
+import sys
 from tkinter import Tk
 
 import serial
 
 from backend import JarvisManager
 from frontend import Homepage
+from pydub import AudioSegment
 
 
 def test_backend():
@@ -27,23 +29,18 @@ def test_frontend():
     root.mainloop()
  
 
-def test():
-    import tkinter
-    from tkinter import ttk
+def test_other():
+    from backend.jarvisSerialComms import JarvisOutputs
 
-    root = tkinter.Tk()
+    test = JarvisOutputs()
+    test.text_to_wav("Hello there. It is I, anakin Skywalker.", None, "test_it.wav")
 
-    style = ttk.Style()
-    style.map("C.TButton",
-        foreground=[('pressed', 'red'), ('active', 'blue')],
-        background=[('pressed', '!disabled', 'black'), ('active', 'white')]
-        )
-
-    colored_btn = ttk.Button(text="Test", style="C.TButton").pack()
-
-    root.mainloop()
-
+ 
 if __name__ == "__main__":
  
-    # test()
+    import faulthandler
+
+    
+    # test_other()
+    # faulthandler.dump_traceback(file=sys.stderr, all_threads=True)
     test_frontend()
