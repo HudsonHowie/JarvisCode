@@ -1,8 +1,10 @@
+import asyncio
+import functools
 import math
 from abc import ABC, abstractmethod
 from tkinter import *
 from tkinter import ttk
-from typing import Dict, List, Tuple, Type, Union
+from typing import Callable, Dict, List, Tuple, Type, Union
 
 from typing_extensions import Self
 
@@ -15,16 +17,19 @@ class BasePage(Toplevel, ABC):
     raw_title: str
     style: ttk.Style
 
-    def __init__(self, manager: JarvisManager, master, **kwargs):
+    def __init__(self, manager: JarvisManager, master: Union[Misc, None] = None, **kwargs):
         Toplevel.__init__(self, master, **kwargs)
         ABC.__init__(self)
         self.manager = manager
+
         self.title(type(self).raw_title)
         self.style = ttk.Style(self)
         self.style.configure("basicFrame.TFrame",
                              foreground="white", background="#26343E")
-
         self.destroy_all_but_self()
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     @abstractmethod
     def setup(self, **kwargs):
@@ -40,230 +45,226 @@ class BasePage(Toplevel, ABC):
             if isinstance(widget, Toplevel) and widget.title() == cls.raw_title:
                 widget.destroy()
 
-    
-
-
-
     def destroy_all_but_self(self):
         for widget in self.master.winfo_children():
             if isinstance(widget, Toplevel) and widget.title() == self.raw_title and widget != self:
                 widget.destroy()
 
 
-class MoveListPage(BasePage):
+def _find_container(name: str, frame_to_search: ttk.Frame):
+    containers: List[Frame] = []
+    for child_frame in frame_to_search.winfo_children():
+        for widget in child_frame.winfo_children():
+            if type(widget) == ttk.Label:
+                nme = widget.cget("text")
+                print(nme)
+                if nme == name:
+                    containers.append(child_frame)  # type: ignore
 
+    return containers
+
+
+def _calc_col_and_row(index: int):
+    return (math.floor(index / 3), index % 3)
+
+
+class MoveListPage(BasePage):
     raw_title = "Move List Page"
     displaymovebox: Listbox
     movelistlist: Dict[str, List[Label]]
 
     def setup(self, **kwargs):
-        frame = ttk.Frame(self, style="basicFrame.TFrame")
-        frame.grid(row=0, column=0, stick="nsew")
-        frame.grid_rowconfigure(0, weight=1)
-        frame.grid_columnconfigure(0, weight=1)
+        top_frame = ttk.Frame(self, style="basicFrame.TFrame")
+        top_frame.grid(row=0, column=0, sticky="nsew")
 
-        m_frame = self.build_move_display(frame)
+        for i in range(3):
+            top_frame.grid_rowconfigure(i, weight=1)
+            top_frame.grid_columnconfigure(i, weight=1)
 
-        m1_frame = self.build_list_display(frame)
+        leftside_f = ttk.Frame(top_frame, style="basicFrame.TFrame")
+        leftside_f.grid(column=0, row=0)
 
-        m2_frame= self.build_movelist_handler(frame, m1_frame)
+        self.populate_leftside(leftside_f)
 
-        for iame in frame.winfo_children():
+        middle_f = ttk.Frame(top_frame)
+        middle_f.grid(column=1, row=0)
+
+        self.populate_middle(middle_f)
+
+        rightside_f = ttk.Frame(top_frame)
+        rightside_f.grid(column=2, row=0)
+
+        self.populate_rightside(rightside_f, middle_f)
+
+
+        for iame in top_frame.winfo_children():
             iame.grid_configure(padx=10, pady=10)
 
     def add_move(self, name: str):
         if not any(nme == name for nme in self.displaymovebox.get(0, END)):
             self.displaymovebox.insert(END, name)
-            
-         
 
-    def build_move_display(self, frame: ttk.Frame):
-        child_frame = ttk.Frame(frame, style= "basicFrame.TFrame")
-        child_frame.grid(column=0, row=0, sticky="nsew")
 
-        move_label = ttk.Label(child_frame, text="Available moves")
+    def _delete_movelist(self, wanted_del: str, frame_to_search: ttk.Frame):
+        containers = _find_container(wanted_del, frame_to_search)
+
+   
+        for con in containers: 
+            col_con = con.grid_info()
+            col_ind = col_con["column"] * 3 + col_con["row"]
+            for child in con.winfo_children():
+                child.destroy()
+            con.grid_remove()
+            con.destroy()
+
+            frames = [(frame, frame.grid_info())
+                      for frame in frame_to_search.winfo_children()]
+            for (frame, frame_info) in frames:
+                index = frame_info["column"] * 3 + frame_info["row"]
+                c, r = _calc_col_and_row(index - 1)
+                if index > col_ind:
+                    frame.grid(column=c, row=r)
+
+        if (len(containers) > 0):
+            self.manager.brain.forget_movelist(wanted_del)
+
+    def _add_movelist(self, wanted_added: str, frame_to_search: ttk.Frame):
+        containers = _find_container(wanted_added, frame_to_search)
+
+        if len(containers) > 0:
+            raise AssertionError("fuck")
+
+
+        if len(frame_to_search.winfo_children()) > 0:
+            index = max([frame.grid_info()["column"] * 3 + frame.grid_info()["row"]
+                        for frame in frame_to_search.winfo_children()])
+        else:
+            index = -1
+        c, r = _calc_col_and_row(index + 1)
+        ml_frame = self.construct_movelist_frame(wanted_added, [], frame_to_search)
+        ml_frame.grid(column=c, row=r)
+        ml_frame.grid_configure(padx=5, pady=5)
+
+        self.manager.brain.teach_movelist(wanted_added, [])
+
+
+    def construct_movelist_frame(self, name: str, moves: List[str], parent_frame: ttk.Frame):
+        
+        def save_moveset(event):
+            items: List[str] = movebox.get(0, END)
+            self.manager.brain.teach_movelist(name, items)
+ 
+        def add_to_moveset(event: Event, entry: Entry):
+            tmp = insert.get()
+
+            if not self.manager.brain.has_move(tmp):
+                entry.delete(0, END)
+                entry.insert(0, "INVALID MOVE")
+            else:
+                movebox.insert(END, tmp)
+                save_moveset(event)
+
+        def delete_selected(event):
+            items = movebox.curselection()
+            for item in items:
+                movebox.delete(item)
+            save_moveset(event)
+        
+        movelist_frame = ttk.Frame(parent_frame)
+
+        ttk.Label(movelist_frame, text=name) \
+            .grid(column=0, row=0)
+        
+
+        val = StringVar()
+        insert = EntryWithPlaceholder(movelist_frame, placeholder="Add move", textvariable=val)
+
+        insert.grid(column=0, row=1, columnspan=2, sticky="nsew")
+        insert.grid_configure(pady=(0, 5))
+
+        
+ 
+
+        insert.bind("<Return>", func=lambda event: add_to_moveset(event, insert))
+ 
+        movebox = ReorderableListbox(movelist_frame)
+        movebox.grid(column=0, row=2, columnspan=2, sticky="nsew")
+
+        for mov in moves:
+            movebox.insert(END, mov)
+
+        movebox.bind("<Leave>", func=save_moveset)
+        movebox.bind("<BackSpace>", func=delete_selected)
+
+
+        button_ml_f = ttk.Frame(movelist_frame)
+        button_ml_f.grid(column=1, row=0)
+
+        but = ttk.Button(button_ml_f, text="Perform",
+                         command=lambda: self.manager.perform_movelist(name))
+        but.grid(column=0, row=0)
+
+        but1 = ttk.Button(button_ml_f, text="Delete", command = lambda: self._delete_movelist(name, parent_frame))
+        but1.grid(column=1, row=0)
+
+        return movelist_frame
+    
+
+    def populate_leftside(self, frame: ttk.Frame):
+        move_label = ttk.Label(frame, text="Available moves")
         move_label.grid(column=0, row=0, sticky="nsew")
 
-        self.displaymovebox = Listbox(child_frame, bg="grey")
+        self.displaymovebox = Listbox(frame, bg="grey")
         self.displaymovebox.grid(column=0, row=1, sticky="nsew")
 
         for mov in self.manager.brain.get_move_names():
             self.displaymovebox.insert(END, mov)
 
-            
-        add_moves = ttk.Button(child_frame, text="Add new moves",
-                                command=lambda: ControlPage.deploy(self.manager, self.master))
+        add_moves = ttk.Button(frame, text="Add new moves",
+                               command=lambda: ControlPage.deploy(self.manager, self.master))
         add_moves.grid(column=0, row=2, sticky="nsew")
 
-        view_moves = ttk.Button(child_frame, text="View all moves",
+        view_moves = ttk.Button(frame, text="View all moves",
                                 command=lambda: PointsPage.deploy(self.manager, self.master))
         view_moves.grid(column=0, row=3, sticky="nsew")
 
-        close_moves = ttk.Button(child_frame, text="Hide moves",
+        close_moves = ttk.Button(frame, text="Hide moves",
                                  command=lambda: PointsPage.destroy_all(self.master))
         close_moves.grid(column=0, row=4, sticky="nsew")
 
-        for iame in child_frame.winfo_children():
+        for iame in frame.winfo_children():
             iame.grid_configure(pady=5)
 
-        return child_frame
-
-    def build_moveset_frame(self, name: str, moves: List[str], frame: ttk.Frame):
-        child_frame = ttk.Frame(frame)
-        child_frame.grid_rowconfigure(0, weight=1)
-        child_frame.grid_columnconfigure(0, weight=1)
-
-        little_frame = ttk.Frame(child_frame)
-        little_frame.grid_rowconfigure(0, weight=1)
-        little_frame.grid_columnconfigure(0, weight=1)
-
-        label = ttk.Label(little_frame, text=name)
-        label.grid(column=0, row=0, sticky="nsew")
-
-        but = ttk.Button(little_frame, text="Perform",
-                         command=lambda: self.manager.perform_movelist(name))
-        but.grid(column=1, row=0, sticky="nsew")
-
-        little_frame.grid(column=0, row=0, sticky="nsew")
-
-        val = StringVar()
-        submit_move_entry = EntryWithPlaceholder(
-            child_frame, placeholder="Add point", textvariable=val)
-        submit_move_entry.grid(column=0, row=1, sticky="nsew")
-        submit_move_entry.grid_configure(pady=(0, 5))
-
-        listbox = ReorderableListbox(child_frame,
-                                     bg="grey")
-
-        listbox.grid(column=0, row=2, sticky="nsew")
-
-        for mov in moves:
-            listbox.insert(END, mov)
-        
-        for iame in child_frame.winfo_children():
-            iame.grid_configure(padx=5, pady=3)
-
-        def add_to_moveset(event):
-            tmp = submit_move_entry.get()
-            assert self.manager.brain.has_move(
-                tmp), "Unknown move: \"%s\". Cannot teach unknown moves." % tmp
-            listbox.insert(0, tmp)
-            save_moveset(event)
-
-        def save_moveset(event):
-            items: List[str] = listbox.get(0, END)
-            self.manager.brain.teach_movelist(name, items)
-
-        def delete_selected(event):
-            items = listbox.curselection()
-            for item in items:
-                listbox.delete(item)
-            save_moveset(event)
-
-        submit_move_entry.bind("<Return>", func=add_to_moveset)
-        listbox.bind("<Leave>", func=save_moveset)
-        listbox.bind("<BackSpace>", func=delete_selected)
-        return child_frame
-
-    def _calc_col_and_row(self, index: int):
-        return (math.floor(index / 3), index % 3)
-
-    def build_list_display(self, frame: ttk.Frame):
-        movelists_frame = ttk.Frame(frame, style="basicFrame.TFrame")
-        movelists_frame.grid(column=1, row=0, sticky="nsew")
-        movelists_frame.grid_rowconfigure(0, weight=1)
-        movelists_frame.grid_columnconfigure(0, weight=1)
-
+    def populate_middle(self, frame: ttk.Frame):
         c = 0
         r = 0
         for index, (key, val) in enumerate(self.manager.brain.get_movelists().items()):
-            c, r = self._calc_col_and_row(index)
-            child_frame = self.build_moveset_frame(key, val, movelists_frame)
-            child_frame.grid(column=c, row=r, sticky='ns')
+            c, r = _calc_col_and_row(index)
+            child_frame = self.construct_movelist_frame(key, val, frame)
+            child_frame.grid(column=c, row=r)
             child_frame.grid_configure(padx=5, pady=5)
+    
 
-        return movelists_frame
-
-    def build_movelist_handler(self, master_frame: ttk.Frame, movelist_frame: ttk.Frame):
-        child_frame = ttk.Frame(master_frame, style="basicFrame.TFrame")
-        child_frame.grid(column=2, row=0, sticky="nsew")
-        # child_frame.grid_rowconfigure(0, weight=1)
-        # child_frame.grid_columnconfigure(0, weight=1)
-
-        del_label = ttk.Label(child_frame, text="Delete movelist")
+    def populate_rightside(self, frame: ttk.Frame, frame_to_search: ttk.Frame):
+        del_label = ttk.Label(frame, text="Delete movelist")
         del_label.grid(column=0, row=0, sticky="nsew")
 
         val = StringVar()
         del_entry = EntryWithPlaceholder(
-            child_frame, placeholder="Movelist name", textvariable=val)
+            frame, placeholder="Movelist name", textvariable=val)
         del_entry.grid(column=0, row=1, sticky="nsew")
 
-        def _find_container(event, name: str):
-            containers: List[Frame] = []
-            for child_frame in movelist_frame.winfo_children():
-                for widget in child_frame.winfo_children():
-                    if type(widget) == ttk.Frame:
-                        for child_widgets in widget.winfo_children():
-                            if type(child_widgets) == ttk.Label:
-                                nme = child_widgets.cget("text")
-                                if nme == name:
-                                    containers.append(child_frame)  # type: ignore
-            return containers
+        del_entry.bind("<Return>", func=lambda event: self._delete_movelist(val.get(), frame_to_search))
 
-        def remove_movelist(event):
-            wanted_del = val.get()
-
-            containers = _find_container(event, wanted_del)
-
-            for con in containers:
-                col_con = con.grid_info()
-                col_ind = col_con["column"] * 3 + col_con["row"]
-                for child in con.winfo_children():
-                    child.destroy()
-                con.destroy()
-
-                frames = [(frame, frame.grid_info())
-                          for frame in movelist_frame.winfo_children()]
-                for (frame, frame_info) in frames:
-                    index = frame_info["column"] * 3 + frame_info["row"]
-                    c, r = self._calc_col_and_row(index - 1)
-                    if index > col_ind:
-                        frame.grid(column=c, row=r)
-
-            if (len(containers) > 0):
-                self.manager.brain.forget_movelist(wanted_del)
-
-        del_entry.bind("<Return>", func=remove_movelist)
-
-        add_label = ttk.Label(child_frame, text="Add movelist")
+        add_label = ttk.Label(frame, text="Add movelist")
         add_label.grid(column=0, row=2, sticky="nsew")
 
         val1 = StringVar()
         add_entry = EntryWithPlaceholder(
-            child_frame, placeholder="Movelist name", textvariable=val1)
+            frame, placeholder="Movelist name", textvariable=val1)
         add_entry.grid(column=0, row=3)
 
-        def add_movelist(event):
-            wanted_added = val1.get()
-            containers = _find_container(event, wanted_added)
-
-            if len(containers) > 0:
-                raise AssertionError("fuck")
-
-            index = max([frame.grid_info()["column"] * 3 + frame.grid_info()["row"]
-                        for frame in movelist_frame.winfo_children()])
-            c, r = self._calc_col_and_row(index + 1)
-            ml_frame = self.build_moveset_frame(
-                wanted_added, [], movelist_frame)
-            ml_frame.grid(column=c, row=r)
-            ml_frame.grid_configure(padx=5, pady=5)
-
-
-            self.manager.brain.teach_movelist(wanted_added, [])
-
-        add_entry.bind("<Return>", func=add_movelist)
-
-        return child_frame
+        add_entry.bind("<Return>", func=lambda event: self._add_movelist(val1.get(), frame_to_search))
 
 
 class ControlPage(BasePage):
@@ -379,13 +380,12 @@ class ControlPage(BasePage):
 
         self.manager.brain.teach_movement(point_name, pts)
 
-     
     def _del_point(self, point_name: str):
         if (point_name == "Delete point"):
             return
-        
+
         pts = self.manager.brain.get_moves().get(point_name)
-        if pts:  
+        if pts:
             self.manager.brain.forget_move(point_name)
         cur = [g.get() for g in self.slides.values()]
 
@@ -426,13 +426,11 @@ class ControlPage(BasePage):
         teach_entry.grid_configure(pady=(0, 5))
         teach_entry.bind(
             "<Return>", func=lambda event: self._teach_point(val1.get()))
-        
 
         del_button = ttk.Button(child_frame, text="Delete point",
-                                  command=lambda: self._del_point(val2.get()))
+                                command=lambda: self._del_point(val2.get()))
         del_button.grid(column=0, row=5, sticky="nsew")
         del_button.grid_configure(pady=(5, 0))
-
 
         val2 = StringVar()
         del_entry = EntryWithPlaceholder(
@@ -441,7 +439,6 @@ class ControlPage(BasePage):
         del_entry.grid_configure(pady=(0, 5))
         del_entry.bind(
             "<Return>", func=lambda event: self._del_point(val2.get()))
-
 
         points_button = ttk.Button(child_frame, text="View all points",
                                    command=lambda: PointsPage.deploy(self.manager, self.master))

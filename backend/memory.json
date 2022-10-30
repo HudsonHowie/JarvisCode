@@ -1,19 +1,12 @@
 {
     "movelists": {
-        "random_moveset": [
+        "test123": [
             "first",
-            "random_moveset_0",
-            "random_moveset_1",
-            "random_moveset_2",
-            "second",
-            "first"
+            "third"
         ],
-        "test": [],
-        "test1": [],
-        "test2": [],
-        "test3": [],
-        "test4": [],
-        "test5": []
+        "test": [
+            "first"
+        ]
     },
     "movements": {
         "first": [
