@@ -34,7 +34,7 @@ class TextToFrequency:
             signal = signal.sum(axis=1) / 2
         N = signal.shape[0]
         print ("Complete Samplings N", N)
-        secs = N / float(fs_rate)
+        secs = N / int(fs_rate)
         print ("secs", secs)
         Ts = 1.0/fs_rate # sampling interval in time
         print ("Timestep between samples Ts", Ts)

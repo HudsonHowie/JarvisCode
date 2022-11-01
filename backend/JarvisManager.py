@@ -25,7 +25,7 @@ class JarvisManager:
         return cls(JarvisMotors(socket), JarvisOutputs(socket), JarvisBrain())
 
     
-    def move_motor(self, name: str, amt: Union[Literal["min", "max", "home"], float]):
+    def move_motor(self, name: str, amt: Union[Literal["min", "max", "home"], int]):
         assert name in self.motors.motor_info, f"Unknown motor \"{name}\"."
         
         if amt == "max":

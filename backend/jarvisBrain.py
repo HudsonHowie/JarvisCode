@@ -21,7 +21,7 @@ class JarvisBrain:
         return self.memory["movelist"].keys()
  
     
-    def get_moves(self) -> Dict[str, List[float]]:
+    def get_moves(self) -> Dict[str, List[int]]:
         tmp: dict[str, 'np.ndarray[tuple, Any]'] = self.memory["movements"]
 
         tmp1 = dict()
@@ -59,7 +59,7 @@ class JarvisBrain:
  
     
 
-    def teach_movement(self, name: str, movement: Union[List[float], 'np.ndarray[tuple, Any]']):
+    def teach_movement(self, name: str, movement: Union[List[int], 'np.ndarray[tuple, Any]']):
         jarvisFileReading.write_memory_point(name, movement)
 
         # debugging, change to simple assignment when confirmed working.

@@ -1,7 +1,7 @@
 import os
 import uuid
 import wave
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 import pyttsx3
 import serial
@@ -29,48 +29,55 @@ class JarvisComms:
 
 class JarvisMotors(JarvisComms):
 
-    motor_info: Dict[str, List[float]]
+    motor_info: Dict[str, Tuple[int, int, int, int, str]]
 
     def __init__(self, com: Union[serial.Serial, None] = None):
         super().__init__(com)
         self.motor_info = jarvisFileReading.get_config()["motors"]
 
-    def get_motor_info(self) -> Dict[str, List[float]]:
+    def get_motor_info(self) -> Dict[str, Tuple[int, int, int, int, str]]:
         return self.motor_info
 
     def get_motor_names(self) -> List[str]:
         return self.motor_info.keys()  # type: ignore
     
-    def get_motor_min(self, name: str) -> float:
+    def get_motor_full_names(self) -> List[str]:
+        return [val[4] for val in self.motor_info.values()]
+    
+    def get_motor_min(self, name: str) -> int:
         assert name in self.motor_info
         return self.motor_info[name][1]
     
-    def get_motor_max(self, name: str) -> float:
+    def get_motor_max(self, name: str) -> int:
         assert name in self.motor_info
         return self.motor_info[name][2]
     
-    def get_motor_home(self, name: str) -> float:
+    def get_motor_home(self, name: str) -> int:
         assert name in self.motor_info
         return self.motor_info[name][3]
+    
+    def get_motor_full_name(self, name: str) -> str:
+        assert name in self.motor_info
+        return self.motor_info[name][4]
 
-    def set_motor_config(self, motor: str, setting: Literal["min", "max", "home"], val: float):
+    def set_motor_config(self, motor: str, setting: Literal["min", "max", "home"], val: int):
         tmp = self.motor_info[motor]
 
         if setting == "min":
-            tmp[1] = val
+            tmp[1] = val # type: ignore
 
         if setting == "max":
-            tmp[2] = val
+            tmp[2] = val # type: ignore
 
         if setting == "home":
-            tmp[3] = val
+            tmp[3] = val # type: ignore
 
         jarvisFileReading.write_motor_config(motor, tmp)
 
         # debugging, change to simple assignment when confirmed working.
         self.motor_info = jarvisFileReading.get_config()["motors"]
 
-    def move_motor(self, name: str, amt: float):
+    def move_motor(self, name: str, amt: int):
         assert name in self.motor_info, f"{name} is not in the config's motors."
 
         tmp = self.motor_info[name]
@@ -87,7 +94,7 @@ class JarvisOutputs(JarvisComms):
     SEND_SIZE = 1024
 
 
-    outputs: Dict[str, float]
+    outputs: Dict[str, int]
     engine: pyttsx3.Engine
 
     def __init__(self, com: Union[serial.Serial, None] = None, engine: Union[pyttsx3.Engine, None] = None):
@@ -100,7 +107,7 @@ class JarvisOutputs(JarvisComms):
 
         self.engine.setProperty('rate', 140)
 
-    def get_output_info(self) -> Dict[str, float]:
+    def get_output_info(self) -> Dict[str, int]:
         return self.outputs
 
     def get_output_names(self) -> List[str]:

@@ -2,9 +2,11 @@ import time
 from tkinter import *
 from tkinter import ttk
 
+from threading import Thread
+
 from backend.JarvisManager import JarvisManager
 
-from .pages import ControlPage, MoveListPage, PointsPage, ProgramPage
+from .pages import AdminPage, ControlPage, MoveListPage, PointsPage, ProgramPage
 
 
 def count(manager: JarvisManager):
@@ -97,17 +99,21 @@ class Homepage:
                 .grid(column=0, row=1)
         ttk.Button(self.frame, text="Points", command=lambda: PointsPage.deploy(self.manager, self.root)) \
                 .grid(column=0, row=3)
+        ttk.Button(self.frame, text="Admin", command= lambda: AdminPage.deploy(self.manager, self.root)) \
+                .grid(column=0, row=4)
         ttk.Button(self.frame, text="Close all tabs", command= lambda: [
             ControlPage.destroy_all(self.root),
             PointsPage.destroy_all(self.root),
-            MoveListPage.destroy_all(self.root)
-        ]).grid(column=0, row=4)
+            MoveListPage.destroy_all(self.root),
+            AdminPage.destroy_all(self.root)
+        ]).grid(column=0, row=5)
 
+       
  
     def build_demos(self):
-        ttk.Button(self.frame, text="Count", command=lambda: count(self.manager)) \
+        ttk.Button(self.frame, text="Count", command=lambda: Thread(None, count, args=(self.manager,)).start()) \
                 .grid(column=2, row=0)
-        ttk.Button(self.frame, text="Nod", command=lambda: nod(self.manager)) \
+        ttk.Button(self.frame, text="Nod", command=lambda:  Thread(None, nod, args=(self.manager,)).start()) \
                 .grid(column=2, row=1)
 
 

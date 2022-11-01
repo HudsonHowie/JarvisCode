@@ -26,6 +26,8 @@ class BasePage(Toplevel, ABC):
         self.style = ttk.Style(self)
         self.style.configure("basicFrame.TFrame",
                              foreground="white", background="#26343E")
+        self.style.configure("basicFrame.TLabel",
+                             foreground="white", background="#26343E")
         self.destroy_all_but_self()
 
         self.grid_columnconfigure(0, weight=1)
@@ -64,8 +66,75 @@ def _find_container(name: str, frame_to_search: ttk.Frame):
     return containers
 
 
-def _calc_col_and_row(index: int):
-    return (math.floor(index / 3), index % 3)
+
+
+
+
+
+class AdminPage(BasePage):
+    raw_title = "Admin Page"
+
+    def setup(self, **kwargs):
+        top_frame = ttk.Frame(self, style="basicFrame.TFrame")
+        top_frame.grid(column=0, row=0, sticky="nsew")
+
+        
+        top_frame.grid_columnconfigure(4, weight=1)
+        self.build_shit(top_frame)
+        self.build_maintence_locks(top_frame)
+
+        children = top_frame.winfo_children()
+        for iame in children:
+            iame.grid_configure(padx=5, pady=(5, 0))
+
+        children[-1].grid_configure(pady=5)
+
+        
+
+    def build_button(self, parent_frame: ttk.Frame, index: int, name: str, info: Tuple[int, int, int, int, str], ):
+        print(index)
+        ttk.Label(parent_frame, text=info[4], style="basicFrame.TLabel").grid(column=0, row=index + 1)
+        l1 = ttk.Entry(parent_frame)
+        l1.insert(0, str(info[1]))
+        l1.grid(column=1, row=index + 1)
+        l1.bind("<Return>", lambda event: [print(int(l1.get())), self.manager.motors.set_motor_config(name, "min", int(l1.get()))])
+
+        l2 = ttk.Entry(parent_frame)
+        l2.insert(0, str(info[2]))
+        l2.grid(column=2, row=index + 1)
+        l2.bind("<Return>", lambda event: self.manager.motors.set_motor_config(name, "max", int(l2.get())))
+
+        l3 = ttk.Entry(parent_frame)
+        l3.insert(0, str(info[3]))
+        l3.grid(column=3, row=index + 1)
+        l3.bind("<Return>", lambda event: self.manager.motors.set_motor_config(name, "home", int(l3.get())))
+
+
+        
+    def build_shit(self, parent_frame: ttk.Frame):
+
+        ttk.Label(parent_frame, text="Minimums", style="basicFrame.TLabel") \
+                .grid(column=1, row=0)
+        ttk.Label(parent_frame, text="Maximums", style="basicFrame.TLabel") \
+                .grid(column=2, row=0)
+        ttk.Label(parent_frame, text="Home Values", style="basicFrame.TLabel") \
+                .grid(column=3, row=0)
+
+    
+        print(self.manager.motors.get_motor_info())
+        for index, (name, info) in enumerate(self.manager.motors.get_motor_info().items()):
+            self.build_button(parent_frame, index, name, info)
+           
+
+            
+    def build_maintence_locks(self, parent_frame: ttk.Frame):
+        ttk.Label(parent_frame, text="Maintence Lockouts", style="basicFrame.TLabel") \
+                .grid(column=4, row=0)
+        
+        for index in range(len(self.manager.motors.motor_info)):
+            ttk.Button(parent_frame, text="Lockout", command=lambda: print("locked out.")) \
+                .grid(column=4, row = index + 1)
+
 
 
 class MoveListPage(BasePage):
@@ -100,6 +169,10 @@ class MoveListPage(BasePage):
         for iame in top_frame.winfo_children():
             iame.grid_configure(padx=10, pady=10)
 
+    def _calc_col_and_row(self, index: int):
+        return (math.floor(index / 3), index % 3)
+    
+
     def add_move(self, name: str):
         if not any(nme == name for nme in self.displaymovebox.get(0, END)):
             self.displaymovebox.insert(END, name)
@@ -121,7 +194,7 @@ class MoveListPage(BasePage):
                       for frame in frame_to_search.winfo_children()]
             for (frame, frame_info) in frames:
                 index = frame_info["column"] * 3 + frame_info["row"]
-                c, r = _calc_col_and_row(index - 1)
+                c, r = self._calc_col_and_row(index - 1)
                 if index > col_ind:
                     frame.grid(column=c, row=r)
 
@@ -140,7 +213,7 @@ class MoveListPage(BasePage):
                         for frame in frame_to_search.winfo_children()])
         else:
             index = -1
-        c, r = _calc_col_and_row(index + 1)
+        c, r = self._calc_col_and_row(index + 1)
         ml_frame = self.construct_movelist_frame(wanted_added, [], frame_to_search)
         ml_frame.grid(column=c, row=r)
         ml_frame.grid_configure(padx=5, pady=5)
@@ -240,7 +313,7 @@ class MoveListPage(BasePage):
         c = 0
         r = 0
         for index, (key, val) in enumerate(self.manager.brain.get_movelists().items()):
-            c, r = _calc_col_and_row(index)
+            c, r = self._calc_col_and_row(index)
             child_frame = self.construct_movelist_frame(key, val, frame)
             child_frame.grid(column=c, row=r)
             child_frame.grid_configure(padx=5, pady=5)
@@ -293,7 +366,7 @@ class ControlPage(BasePage):
         for child in frame.winfo_children():
             child.grid_configure(padx=10, pady=10)
 
-    def build_motor_button_set(self, frame_canvas: ttk.Frame, info: Tuple[str, List[float]],  c: int, r: int):
+    def build_motor_button_set(self, frame_canvas: ttk.Frame, info: Tuple[str, Tuple[int, int, int, int, str]],  c: int, r: int):
         val = IntVar()
         mini_frame = ttk.Frame(frame_canvas, style="sliderFrame.TFrame")
         mini_frame.grid(column=c, row=r, sticky="nsew")
