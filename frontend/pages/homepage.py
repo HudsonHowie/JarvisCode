@@ -28,7 +28,7 @@ def count(manager: JarvisManager):
     time.sleep(.5)
     manager.move_motor("LP", 400)
     time.sleep(.5)
-    manager.move_motor("LT", 300)
+    manager.move_motor("LT", 330) # used to be 300
     time.sleep(.5)
     manager.move_motor("RI", "max")
     time.sleep(.5)
@@ -72,8 +72,6 @@ class Homepage:
     
         self.frame = ttk.Frame(root, style="basicPage.TFrame")
         self.frame.grid(column=0, row=0, sticky="nsew")
-
- 
 
         self.build_child_pages()
 

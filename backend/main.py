@@ -1,4 +1,4 @@
-from JarvisManager import JarvisManager
+from .JarvisManager import JarvisManager
 
 
 def gen_random_move():
@@ -6,9 +6,9 @@ def gen_random_move():
     from random import randrange
 
     import numpy as np
-    from jarvisFileReading import get_config, get_memory
+
+    from .jarvisFileReading import get_config, get_memory
     conf = get_config()["motors"]
-    tmp = get_memory()
     tmp1 = []
     for motor in conf:
         info = conf[motor]

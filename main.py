@@ -5,7 +5,6 @@ import serial
 
 from backend import JarvisManager
 from frontend import Homepage
-from pydub import AudioSegment
 
 
 def test_backend():
@@ -33,14 +32,14 @@ def test_other():
     from backend.jarvisSerialComms import JarvisOutputs
 
     test = JarvisOutputs()
-    test.text_to_wav("Hello there. It is I, anakin Skywalker.", None, "test_it.wav")
+    test.text_to_wav("The quick brown fox jumped over the lazy dog.", None, "test_it.wav")
 
+ 
  
 if __name__ == "__main__":
  
     import faulthandler
 
-    
     # test_other()
     # faulthandler.dump_traceback(file=sys.stderr, all_threads=True)
     test_frontend()

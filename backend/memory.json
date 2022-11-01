@@ -2,7 +2,9 @@
     "movelists": {
         "test123": [
             "first",
-            "third"
+            "second",
+            "third",
+            "random_moveset_0"
         ],
         "test": [
             "first"

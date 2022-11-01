@@ -186,6 +186,7 @@ class MoveListPage(BasePage):
  
 
         insert.bind("<Return>", func=lambda event: add_to_moveset(event, insert))
+        insert.bind
  
         movebox = ReorderableListbox(movelist_frame)
         movebox.grid(column=0, row=2, columnspan=2, sticky="nsew")
