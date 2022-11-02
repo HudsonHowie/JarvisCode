@@ -14,7 +14,7 @@
             500,
             370,
             "Left X-Arm",
-            false
+            true
         ],
         "LY": [
             20000,

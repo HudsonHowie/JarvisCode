@@ -529,7 +529,7 @@ class ControlPage(BasePage):
                 info[0]), "The motor didn't have a respective slide."
             self.slides[info[0]].set(info[1][3])
 
-    def _set_all_slides_to_point(self, point_name: str):
+    def _set_all_slides_to_point(self, point_name: str, entry: Entry):
         pts = self.manager.brain.get_moves()
 
         if not pts.get(point_name):
@@ -541,7 +541,9 @@ class ControlPage(BasePage):
             assert self.slides.get(name)
             self.slides[name].set(pt[index])
 
-    def _teach_point(self, point_name: str):
+        entry.delete(0, END)
+
+    def _teach_point(self, point_name: str, entry: Entry):
         if (point_name == "Teach point"):
             return
 
@@ -551,7 +553,9 @@ class ControlPage(BasePage):
 
         self.manager.brain.teach_movement(point_name, pts)
 
-    def _del_point(self, point_name: str):
+        entry.delete(0, END)
+
+    def _del_point(self, point_name: str, entry: Entry):
         if (point_name == "Delete point"):
             return
 
@@ -565,6 +569,8 @@ class ControlPage(BasePage):
         if pts == cur:
             self._return_all_slides_home()
 
+        entry.delete(0, END)
+
     def build_other_buttons(self, frame: ttk.Frame):
         child_frame = ttk.Frame(frame, style="basicFrame.TFrame")
         child_frame.grid(row=0, column=2, sticky='ne')
@@ -575,7 +581,7 @@ class ControlPage(BasePage):
         send_all_button.grid_configure(pady=10)
 
         goto_button = ttk.Button(child_frame, text="Goto point",
-                                 command=lambda: self._set_all_slides_to_point(val.get()))
+                                 command=lambda: self._set_all_slides_to_point(val.get(), goto_entry))
         goto_button.grid(column=0, row=1, sticky="nsew")
         goto_button.grid_configure(pady=(10, 0))
 
@@ -585,10 +591,10 @@ class ControlPage(BasePage):
         goto_entry.grid(column=0, row=2, sticky="nsew")
         goto_entry.grid_configure(pady=(0, 5))
         goto_entry.bind(
-            "<Return>", func=lambda event: self._set_all_slides_to_point(val.get()))
+            "<Return>", func=lambda event: self._set_all_slides_to_point(val.get(), goto_entry))
 
         teach_button = ttk.Button(child_frame, text="Teach point",
-                                  command=lambda: self._teach_point(val1.get()))
+                                  command=lambda: self._teach_point(val1.get(), teach_entry))
         teach_button.grid(column=0, row=3, sticky="nsew")
         teach_button.grid_configure(pady=(5, 0))
 
@@ -598,10 +604,10 @@ class ControlPage(BasePage):
         teach_entry.grid(column=0, row=4, sticky="nsew")
         teach_entry.grid_configure(pady=(0, 5))
         teach_entry.bind(
-            "<Return>", func=lambda event: self._teach_point(val1.get()))
+            "<Return>", func=lambda event: self._teach_point(val1.get(), teach_entry))
 
         del_button = ttk.Button(child_frame, text="Delete point",
-                                command=lambda: self._del_point(val2.get()))
+                                command=lambda: self._del_point(val2.get(), del_entry))
         del_button.grid(column=0, row=5, sticky="nsew")
         del_button.grid_configure(pady=(5, 0))
 
@@ -611,7 +617,7 @@ class ControlPage(BasePage):
         del_entry.grid(column=0, row=6, sticky="nsew")
         del_entry.grid_configure(pady=(0, 5))
         del_entry.bind(
-            "<Return>", func=lambda event: self._del_point(val2.get()))
+            "<Return>", func=lambda event: self._del_point(val2.get(), del_entry))
 
         points_button = ttk.Button(child_frame, text="View all points",
                                    command=lambda: PointsPage.deploy(self.manager, self.master))
