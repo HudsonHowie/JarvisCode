@@ -72,15 +72,16 @@ class Homepage:
         root.rowconfigure(0, weight=1)
 
         self.style = ttk.Style(root)
-        self.style.configure("basicPage.TFrame", background="#26343E")
-        self.style.configure("basicPage.TLabel", font=("Helvetica", 24), background="#26343E", foreground="white")
+        # self.style.theme_use('alt')
+        self.style.configure("HomePage.TFrame", background="#26343E")
+        self.style.configure("HomePage.TLabel", font=("Helvetica", 24), background="#26343E", foreground="white")
     
-        self.frame = ttk.Frame(root, style="basicPage.TFrame")
+        self.frame = ttk.Frame(root, style="HomePage.TFrame")
         self.frame.grid(column=0, row=0, sticky="nsew")
 
         self.build_child_pages()
 
-        ttk.Label(self.frame, style="basicPage.TLabel", text="Welcome to the Jarvis Controller!") \
+        ttk.Label(self.frame, style="HomePage.TLabel", text="Welcome to the Jarvis Controller!") \
             .grid(column=1, row=0)
 
         self.build_demos()

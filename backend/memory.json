@@ -7,12 +7,9 @@
         "test": [
             "first",
             "first",
-            "second",
-            "second",
             "third"
         ],
-        "test1": [],
-        "test2": []
+        "test1": []
     },
     "movements": {
         "t": [
