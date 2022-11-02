@@ -75,7 +75,6 @@ class JarvisBrain:
          # debugging, change to simple assignment when confirmed working.
         self.memory = jarvisFileReading.get_memory_numpy()
 
-
     def teach_movelist_raw(self, name: str, moves: List['np.ndarray[tuple, Any]']):
         names: List[str] = []
         for idx, move in enumerate(moves):
@@ -85,4 +84,14 @@ class JarvisBrain:
 
         self.teach_movelist(name, names)
 
+        
+    def remove_move_from_movelist(self, movelist: str, move: str):
+        assert movelist in self.memory["movelists"], f"Unknown movelist \"{movelist}\"."
+        tmp: List[str] = self.memory["movelists"][movelist]
+
+        assert move in tmp, f"Unknown move \"{move}\" within movelist \"{movelist}\"."
+
+        tmp.remove(move)
+
+        jarvisFileReading.write_memory_movelist(movelist, tmp)
 

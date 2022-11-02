@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 
+from custom_types import MotorInfo
+
 MOTOR_COUNT = 23
 
 
@@ -25,7 +27,7 @@ def get_memory_numpy() -> Dict[str, 'np.ndarray[tuple, Any]']:
         return memory
 
 
-def write_motor_config(name: str, val: Tuple[int, int, int, int, str]):
+def write_motor_config(name: str, val: MotorInfo):
     config = json.load(open(os.path.dirname(__file__) + "/config.json", "r"))
 
     # checks that name is in config, throws error otherwises

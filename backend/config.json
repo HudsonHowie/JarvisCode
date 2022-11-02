@@ -5,161 +5,184 @@
             400,
             515,
             400,
-            "Left Shoulder"
+            "Left Shoulder",
+            false
         ],
         "LX": [
             10000,
             320,
             500,
             370,
-            "Left X-Arm"
+            "Left X-Arm",
+            false
         ],
         "LY": [
             20000,
             450,
             520,
             515,
-            "Left Y-Arm"
+            "Left Y-Arm",
+            false
         ],
         "LB": [
             30000,
             556,
             2420,
             556,
-            "Left Bicep"
+            "Left Bicep",
+            false
         ],
         "LW": [
             40000,
             556,
             2420,
             556,
-            "Left Wrist"
+            "Left Wrist",
+            false
         ],
         "LT": [
             50000,
             330,
             550,
             300,
-            "Left Thumb"
+            "Left Thumb",
+            false
         ],
         "LI": [
             60000,
             275,
             500,
             275,
-            "Left Index"
+            "Left Index",
+            false
         ],
         "LM": [
             70000,
             300,
             500,
             300,
-            "Left Middle"
+            "Left Middle",
+            false
         ],
         "LR": [
             80000,
             150,
             375,
             375,
-            "Left Ring"
+            "Left Ring",
+            false
         ],
         "LP": [
             90000,
             150,
             400,
             400,
-            "Left Pinky"
+            "Left Pinky",
+            false
         ],
         "RS": [
             100000,
             270,
             350,
             270,
-            "Right Shoulder"
+            "Right Shoulder",
+            false
         ],
         "RX": [
             110000,
             320,
             500,
             400,
-            "Right X-Arm"
+            "Right X-Arm",
+            false
         ],
         "RY": [
             120000,
             390,
             510,
             475,
-            "Right Y-Arm"
+            "Right Y-Arm",
+            false
         ],
         "RB": [
             130000,
             410,
             600,
             410,
-            "Right Bicep"
+            "Right Bicep",
+            false
         ],
         "RW": [
             140000,
             0,
             200,
             100,
-            "Right Wrist"
+            "Right Wrist",
+            false
         ],
         "RT": [
             150000,
             250,
             400,
             250,
-            "Right Thumb"
+            "Right Thumb",
+            false
         ],
         "RI": [
             160000,
             250,
             500,
             250,
-            "Right Index"
+            "Right Index",
+            false
         ],
         "RM": [
             170000,
             250,
             500,
             250,
-            "Right Middle"
+            "Right Middle",
+            false
         ],
         "RR": [
             180000,
             270,
             500,
             270,
-            "Right Ring"
+            "Right Ring",
+            false
         ],
         "RP": [
             190000,
             270,
             500,
             270,
-            "Right Pinky"
+            "Right Pinky",
+            false
         ],
         "HP": [
             200000,
             270,
             420,
             336,
-            "Head Pan"
+            "Head Pan",
+            false
         ],
         "HT": [
             210000,
             150,
             430,
             300,
-            "Head Tilt"
+            "Head Tilt",
+            false
         ],
         "J": [
             220000,
             300,
             500,
             300,
-            "Jaw"
+            "Jaw",
+            false
         ]
     },
     "outputs": {

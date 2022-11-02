@@ -1,21 +1,20 @@
-import asyncio
-import functools
 import math
 from abc import ABC, abstractmethod
 from tkinter import *
 from tkinter import ttk
-from typing import Callable, Dict, List, Tuple, Type, Union
-
-from typing_extensions import Self
+from typing import Dict, List, Optional, Tuple, Union
 
 from backend.JarvisManager import JarvisManager
+from custom_types import MotorInfo
 from frontend.custom_classes import EntryWithPlaceholder, ReorderableListbox
+from frontend.custom_classes.style import Style
 
 
 class BasePage(Toplevel, ABC):
 
+    destroy_others: bool = True
     raw_title: str
-    style: ttk.Style
+    style: Style
 
     def __init__(self, manager: JarvisManager, master: Union[Misc, None] = None, **kwargs):
         Toplevel.__init__(self, master, **kwargs)
@@ -23,12 +22,14 @@ class BasePage(Toplevel, ABC):
         self.manager = manager
 
         self.title(type(self).raw_title)
-        self.style = ttk.Style(self)
+        self.style = Style(self)
         self.style.configure("basicFrame.TFrame",
                              foreground="white", background="#26343E")
         self.style.configure("basicFrame.TLabel",
                              foreground="white", background="#26343E")
-        self.destroy_all_but_self()
+        
+        if type(self).destroy_others:
+            self.destroy_all_but_self()
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -39,7 +40,7 @@ class BasePage(Toplevel, ABC):
 
     @classmethod
     def deploy(cls, manager, parent, **kwargs):
-        return cls(manager, parent, **kwargs).setup(**kwargs)
+        return cls(manager, parent).setup(**kwargs)
 
     @classmethod
     def destroy_all(cls, root):
@@ -52,6 +53,23 @@ class BasePage(Toplevel, ABC):
             if isinstance(widget, Toplevel) and widget.title() == self.raw_title and widget != self:
                 widget.destroy()
 
+    def display_error(self, msg: Union[Exception, str]):
+        if type(msg) == Exception:
+            msg = str(msg) 
+            
+        tmp = Toplevel(self)
+        tmp.title("Error!")
+        tmp.bind("<Return>", lambda event: tmp.destroy())
+
+        frame = ttk.Frame(tmp, style="basicFrame.TFrame")
+        frame.grid(column=0, row=0, sticky="nsew")
+
+        ttk.Label(frame, text=msg, style="basicFrame.TLabel").grid(column=0, row=0) # type: ignore
+        ttk.Button(frame, text="Close", command= lambda: tmp.destroy()).grid(column=0, row=1)
+
+        for iame in frame.winfo_children():
+            iame.grid_configure(padx=5, pady=5)
+
 
 def _find_container(name: str, frame_to_search: ttk.Frame):
     containers: List[Frame] = []
@@ -59,7 +77,6 @@ def _find_container(name: str, frame_to_search: ttk.Frame):
         for widget in child_frame.winfo_children():
             if type(widget) == ttk.Label:
                 nme = widget.cget("text")
-                print(nme)
                 if nme == name:
                     containers.append(child_frame)  # type: ignore
 
@@ -67,6 +84,40 @@ def _find_container(name: str, frame_to_search: ttk.Frame):
 
 
 
+class AdminPromptPage(BasePage):
+    raw_title = "Admin Prompt Page"
+
+    def setup(self, **kwargs):
+        self.password = "InMoov"
+
+        self.style.configure("adminPromptPage.TFrame", background="#26343E")
+        top_frame = ttk.Frame(self, style="basicFrame.TFrame")
+        top_frame.grid(column=0, row=0, sticky="nsew")
+
+        
+        label = ttk.Label(top_frame, text="Enter admin password", style="basicFrame.TLabel").grid(column=0, row=0)
+        entry = ttk.Entry(top_frame)
+        entry.bind("<Return>", lambda event: self.check_entry(entry, entry.get()))
+        entry.grid(column=0, row=1)
+
+        for iame in top_frame.winfo_children():
+            iame.grid_configure(padx=5, pady=5)
+
+
+    def check_entry(self, entry: ttk.Entry, pas: str):
+        entry.delete(0, END)
+        if pas == self.password:
+            AdminPromptPage.destroy_all(self.master)
+            AdminPage.deploy(self.manager, self.master)
+        else:
+            self.display_error("Invalid password!")
+   
+
+
+        
+
+
+        
 
 
 
@@ -79,9 +130,8 @@ class AdminPage(BasePage):
         top_frame.grid(column=0, row=0, sticky="nsew")
 
         
-        top_frame.grid_columnconfigure(4, weight=1)
+        # top_frame.grid_columnconfigure(5, weight=1)
         self.build_shit(top_frame)
-        self.build_maintence_locks(top_frame)
 
         children = top_frame.winfo_children()
         for iame in children:
@@ -91,13 +141,12 @@ class AdminPage(BasePage):
 
         
 
-    def build_button(self, parent_frame: ttk.Frame, index: int, name: str, info: Tuple[int, int, int, int, str], ):
-        print(index)
+    def build_button(self, parent_frame: ttk.Frame, index: int, name: str, info: MotorInfo):
         ttk.Label(parent_frame, text=info[4], style="basicFrame.TLabel").grid(column=0, row=index + 1)
         l1 = ttk.Entry(parent_frame)
         l1.insert(0, str(info[1]))
         l1.grid(column=1, row=index + 1)
-        l1.bind("<Return>", lambda event: [print(int(l1.get())), self.manager.motors.set_motor_config(name, "min", int(l1.get()))])
+        l1.bind("<Return>", lambda event: self.manager.motors.set_motor_config(name, "min", int(l1.get())))
 
         l2 = ttk.Entry(parent_frame)
         l2.insert(0, str(info[2]))
@@ -109,8 +158,26 @@ class AdminPage(BasePage):
         l3.grid(column=3, row=index + 1)
         l3.bind("<Return>", lambda event: self.manager.motors.set_motor_config(name, "home", int(l3.get())))
 
+                 
+    def build_lock(self, parent_frame: ttk.Frame, index: int, name: str):
 
+
+        def lock_func():
+            new_bool = not locked_str.get() == 'True'
+            locked_str.set(str(new_bool))
+
+            self.manager.motors.lock_motor(name, new_bool)
+
+
+        locked_str = StringVar(parent_frame, value=str(self.manager.motors.get_motor_locked(name)))
+
+        ttk.Button(parent_frame, text="Lockout", command=lock_func) \
+            .grid(column=4, row = index + 1)
         
+        ttk.Label(parent_frame, textvariable=locked_str, style="basicFrame.TLabel") \
+            .grid(column=5, row = index + 1)
+        
+ 
     def build_shit(self, parent_frame: ttk.Frame):
 
         ttk.Label(parent_frame, text="Minimums", style="basicFrame.TLabel") \
@@ -120,20 +187,21 @@ class AdminPage(BasePage):
         ttk.Label(parent_frame, text="Home Values", style="basicFrame.TLabel") \
                 .grid(column=3, row=0)
 
-    
-        print(self.manager.motors.get_motor_info())
+        ttk.Label(parent_frame, text="Maintence Lockouts", style="basicFrame.TLabel") \
+                .grid(column=4, row=0, columnspan=2)
+        
+
         for index, (name, info) in enumerate(self.manager.motors.get_motor_info().items()):
             self.build_button(parent_frame, index, name, info)
+            self.build_lock(parent_frame, index, name)
            
 
+
+
+   
             
-    def build_maintence_locks(self, parent_frame: ttk.Frame):
-        ttk.Label(parent_frame, text="Maintence Lockouts", style="basicFrame.TLabel") \
-                .grid(column=4, row=0)
-        
-        for index in range(len(self.manager.motors.motor_info)):
-            ttk.Button(parent_frame, text="Lockout", command=lambda: print("locked out.")) \
-                .grid(column=4, row = index + 1)
+     
+         
 
 
 
@@ -178,9 +246,13 @@ class MoveListPage(BasePage):
             self.displaymovebox.insert(END, name)
 
 
-    def _delete_movelist(self, wanted_del: str, frame_to_search: ttk.Frame):
+    def _delete_movelist(self, wanted_del: str, frame_to_search: ttk.Frame, entry: Optional[Entry] = None):
         containers = _find_container(wanted_del, frame_to_search)
 
+        if (len(containers) == 0):
+            if entry:
+                entry.delete(0, END)
+            self.display_error(f"Couldn't find movelist \"{wanted_del}\".")
    
         for con in containers: 
             col_con = con.grid_info()
@@ -190,8 +262,7 @@ class MoveListPage(BasePage):
             con.grid_remove()
             con.destroy()
 
-            frames = [(frame, frame.grid_info())
-                      for frame in frame_to_search.winfo_children()]
+            frames = [(frame, frame.grid_info()) for frame in frame_to_search.winfo_children()]
             for (frame, frame_info) in frames:
                 index = frame_info["column"] * 3 + frame_info["row"]
                 c, r = self._calc_col_and_row(index - 1)
@@ -201,11 +272,14 @@ class MoveListPage(BasePage):
         if (len(containers) > 0):
             self.manager.brain.forget_movelist(wanted_del)
 
-    def _add_movelist(self, wanted_added: str, frame_to_search: ttk.Frame):
+    def _add_movelist(self, wanted_added: str, frame_to_search: ttk.Frame, entry: Optional[Entry] = None):
         containers = _find_container(wanted_added, frame_to_search)
 
         if len(containers) > 0:
-            raise AssertionError("fuck")
+            self.display_error("Move already exists")
+            if entry:
+                entry.delete(0, END)
+            return
 
 
         if len(frame_to_search.winfo_children()) > 0:
@@ -218,21 +292,33 @@ class MoveListPage(BasePage):
         ml_frame.grid(column=c, row=r)
         ml_frame.grid_configure(padx=5, pady=5)
 
-        self.manager.brain.teach_movelist(wanted_added, [])
+        try:
+            self.manager.brain.teach_movelist(wanted_added, [])
+        except Exception as e:
+            self.display_error(e)
 
 
     def construct_movelist_frame(self, name: str, moves: List[str], parent_frame: ttk.Frame):
         
-        def save_moveset(event):
+        def save_moveset(event, box: Optional[Listbox] = None):
             items: List[str] = movebox.get(0, END)
-            self.manager.brain.teach_movelist(name, items)
+            for mov in items:
+                if not self.manager.brain.has_move(mov):
+                    self.manager.brain.remove_move_from_movelist(name, mov)
+                    if box:
+                        box.delete(box.get(0, END).index(mov))
+            try:
+                self.manager.brain.teach_movelist(name, items)
+            except Exception as e:
+                self.display_error(e)
+
+                        
  
         def add_to_moveset(event: Event, entry: Entry):
             tmp = insert.get()
-
+            entry.delete(0, END)
             if not self.manager.brain.has_move(tmp):
-                entry.delete(0, END)
-                entry.insert(0, "INVALID MOVE")
+                self.display_error("Invalid move.")
             else:
                 movebox.insert(END, tmp)
                 save_moveset(event)
@@ -255,9 +341,6 @@ class MoveListPage(BasePage):
         insert.grid(column=0, row=1, columnspan=2, sticky="nsew")
         insert.grid_configure(pady=(0, 5))
 
-        
- 
-
         insert.bind("<Return>", func=lambda event: add_to_moveset(event, insert))
         insert.bind
  
@@ -267,7 +350,7 @@ class MoveListPage(BasePage):
         for mov in moves:
             movebox.insert(END, mov)
 
-        movebox.bind("<Leave>", func=save_moveset)
+        movebox.bind("<Leave>", func=lambda event: save_moveset(event, movebox))
         movebox.bind("<BackSpace>", func=delete_selected)
 
 
@@ -285,8 +368,16 @@ class MoveListPage(BasePage):
     
 
     def populate_leftside(self, frame: ttk.Frame):
+
+        def get_moves(event):
+            self.displaymovebox.delete(0, END)
+            for mov in self.manager.brain.get_move_names():
+                self.displaymovebox.insert(END, mov)
+
         move_label = ttk.Label(frame, text="Available moves")
         move_label.grid(column=0, row=0, sticky="nsew")
+        move_label.bind("<Leave>", get_moves)
+        move_label.bind("<Enter>", get_moves)
 
         self.displaymovebox = Listbox(frame, bg="grey")
         self.displaymovebox.grid(column=0, row=1, sticky="nsew")
@@ -328,7 +419,7 @@ class MoveListPage(BasePage):
             frame, placeholder="Movelist name", textvariable=val)
         del_entry.grid(column=0, row=1, sticky="nsew")
 
-        del_entry.bind("<Return>", func=lambda event: self._delete_movelist(val.get(), frame_to_search))
+        del_entry.bind("<Return>", func=lambda event: self._delete_movelist(val.get(), frame_to_search, del_entry))
 
         add_label = ttk.Label(frame, text="Add movelist")
         add_label.grid(column=0, row=2, sticky="nsew")
@@ -338,7 +429,7 @@ class MoveListPage(BasePage):
             frame, placeholder="Movelist name", textvariable=val1)
         add_entry.grid(column=0, row=3)
 
-        add_entry.bind("<Return>", func=lambda event: self._add_movelist(val1.get(), frame_to_search))
+        add_entry.bind("<Return>", func=lambda event: self._add_movelist(val1.get(), frame_to_search, add_entry))
 
 
 class ControlPage(BasePage):
@@ -366,7 +457,7 @@ class ControlPage(BasePage):
         for child in frame.winfo_children():
             child.grid_configure(padx=10, pady=10)
 
-    def build_motor_button_set(self, frame_canvas: ttk.Frame, info: Tuple[str, Tuple[int, int, int, int, str]],  c: int, r: int):
+    def build_motor_button_set(self, frame_canvas: ttk.Frame, info: Tuple[str, MotorInfo],  c: int, r: int):
         val = IntVar()
         mini_frame = ttk.Frame(frame_canvas, style="sliderFrame.TFrame")
         mini_frame.grid(column=c, row=r, sticky="nsew")
@@ -382,7 +473,10 @@ class ControlPage(BasePage):
 
         def go_func():
             tmp = val.get()
-            return self.manager.motors.move_motor(info[0], tmp)
+            try:
+                self.manager.motors.move_motor(info[0], tmp)
+            except Exception as e:
+                self.display_error(e)
 
         go_button = ttk.Button(
             mini_frame, style="sliderFrame.TButton", text="Go", command=go_func)
@@ -437,8 +531,11 @@ class ControlPage(BasePage):
 
     def _set_all_slides_to_point(self, point_name: str):
         pts = self.manager.brain.get_moves()
-        assert pts.get(point_name), "The move requested doesn't exist."
 
+        if not pts.get(point_name):
+            self.display_error(f"Point \"{point_name}\" doesn't exist.")
+            return
+        
         pt = pts[point_name]
         for index, name in enumerate(self.manager.motors.get_motor_names()):
             assert self.slides.get(name)
@@ -461,6 +558,8 @@ class ControlPage(BasePage):
         pts = self.manager.brain.get_moves().get(point_name)
         if pts:
             self.manager.brain.forget_move(point_name)
+        else:
+            self.display_error(f"Point \"{point_name}\" doesn't exist.")
         cur = [g.get() for g in self.slides.values()]
 
         if pts == cur:
@@ -526,16 +625,7 @@ class ControlPage(BasePage):
 
         return child_frame
 
-
-class ProgramPage(BasePage):
-
-    raw_title = "Program Page"
-
-    def setup(self, **kwargs):
-        frame = ttk.Frame(self)
-        frame.grid(row=0, column=0, stick="nsew")
-        ttk.Button(frame, text="Program").grid(column=0, row=0, sticky="we")
-
+    
 
 class PointsPage(BasePage):
 
@@ -548,57 +638,83 @@ class PointsPage(BasePage):
         self.points = []
         points = self.manager.brain.get_moves()
 
-        for (key, val) in points.items():
-            self.points.append(
-                (StringVar(value=key), StringVar(value=str(val))))
+        top_frame = ttk.Frame(self, style="basicFrame.TFrame")
+        top_frame.grid(column=0, row=0)
 
-        # frame = ttk.Frame(self)
-        # frame.grid(row=0, column=0, stick="nsew")
+        canvas=Canvas(top_frame, background="#26343E", width=800,height=200)
+        canvas.grid(column=0, row=0)
+ 
+    
+        
+        def build_thing(name: str, info: List[int], x: int, y: int):
+            def click_pt(event):
+                PointPage.deploy(self.manager, self, name=name, point=info)
+            id1= canvas.create_text(0, y, text=name, activefill="red", fill="white")
+            id2= canvas.create_text(400, y, text=str(info), activefill="red", fill="white")
+            canvas.tag_bind(id1, "<Button-1>", click_pt)
+            canvas.tag_bind(id2, "<Button-1>", click_pt)
+            ids.append((id1, id2))
 
-        frame_main = ttk.Frame(self)
-        frame_main.grid(sticky='news')
+        
+     
+        y = 0
+        ids = []
+        for index, (name, info) in enumerate(points.items()):
+            build_thing(name, info, index, y)
+            y+= 30
 
-        # Create a frame for the canvas with non-zero row&column weights
-        frame_canvas = ttk.Frame(frame_main)
-        frame_canvas.grid(row=0, column=0, pady=(5, 0), sticky='nw')
-        frame_canvas.grid_rowconfigure(0, weight=1)
-        frame_canvas.grid_columnconfigure(0, weight=1)
-        # Set grid_propagate to False to allow 5-by-5 buttons resizing later
-        frame_canvas.grid_propagate(False)
+        # canvas.update_idletasks()
 
-        # Add a canvas in that frame
-        canvas = Canvas(frame_canvas)
-        canvas.grid(row=0, column=0, sticky="news")
+        bar = ttk.Scrollbar(top_frame)
+        bar.config(command=canvas.yview)
+        bar.grid(column=1, row=0, sticky="nsew")
 
-        # Link a scrollbar to the canvas
-        vsb = Scrollbar(frame_canvas, orient="vertical", command=canvas.yview)
-        vsb.grid(row=0, column=1, sticky='ns')
-        canvas.configure(yscrollcommand=vsb.set)
 
-        # Create a frame to contain the buttons
-        button_frame = ttk.Frame(canvas)
-        canvas.create_window((0, 0), window=button_frame, anchor='nw')
-        buttons = []
-        for index, (key, val) in enumerate(self.points):
-            buttons.append([ttk.Label(button_frame, textvariable=key),
-                           ttk.Label(button_frame, textvariable=val)])
-            buttons[index][0].grid(row=index, column=0, sticky='news')
-            buttons[index][1].grid(row=index, column=1, sticky='news')
+        maxwidth = max([canvas.bbox(child[1])[2] - canvas.bbox(child[0])[0] for child in ids])
 
-        # Update buttons frames idle tasks to let tkinter calculate buttons sizes
-        button_frame.update_idletasks()
+        canvas.config(width=maxwidth + 20, yscrollcommand=bar.set, scrollregion=canvas.bbox("all"))
 
-        # Resize the canvas frame to show exactly 5-by-5 buttons and the scrollbar
-        col_w = max([buttons[index][0].winfo_width() + buttons[index]
-                    [1].winfo_width() for index in range(len(self.points))])
-        col_h = sum([max([buttons[index][0].winfo_height(), buttons[index]
-                    [1].winfo_height()]) for index in range(len(self.points))])
 
-        for child in button_frame.winfo_children():
-            child.grid_configure(padx=5, pady=5)
+    def _delete_move(self, name: str):
+        try:
+            self.manager.brain.forget_move(name)
+        except Exception as e:
+            self.display_error(e)
 
-        frame_canvas.config(width=col_w + vsb.winfo_width() + 15,
-                            height=col_h + 10 * len(self.points))
 
-        # Set the canvas scrolling region
-        canvas.config(scrollregion=canvas.bbox("all"))
+class PointPage(BasePage):
+
+    raw_title = "Single Point Details"
+
+    def setup(self, name: str, point: List[int], **kwargs):
+        top_frame = ttk.Frame(self, style="basicFrame.TFrame")
+        top_frame.grid(column=0, row=0, sticky="nsew")
+        top_frame.grid_columnconfigure(0, weight=1)
+
+        self.style.configure("pointPage.TLabel", font=(None, 22), extends="basicFrame.TLabel")
+
+        
+        ttk.Label(top_frame, text=name, style="pointPage.TLabel") \
+            .grid(column=0, row=0, columnspan=2, sticky="we")
+        
+        ttk.Button(top_frame, text="Close", command = lambda: self.destroy()) \
+            .grid(column=0, row=1, columnspan=2, sticky="we")
+        
+        for index, (pt, name) in enumerate(zip(point, self.manager.motors.get_motor_full_names()), 2):
+
+            ttk.Label(top_frame, text=name, style="basicFrame.TLabel") \
+                    .grid(column=0, row=index, sticky="w")
+            
+            ttk.Label(top_frame, text=pt, style="basicFrame.TLabel") \
+                    .grid(column=1, row=index, sticky="e")
+            
+        for iame in top_frame.winfo_children():
+            iame.grid_configure(padx=5, pady=5)
+
+
+
+
+        
+
+
+

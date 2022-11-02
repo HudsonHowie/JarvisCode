@@ -1,7 +1,7 @@
 import os
 import uuid
 import wave
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import pyttsx3
 import serial
@@ -15,7 +15,7 @@ class JarvisComms:
     _debug: bool
     comms: serial.Serial
 
-    def __init__(self, com: Union[serial.Serial, None] = None):
+    def __init__(self, com: Optional[serial.Serial] = None):
         if com:
             self.comms = com
             self._debug = False
@@ -29,13 +29,13 @@ class JarvisComms:
 
 class JarvisMotors(JarvisComms):
 
-    motor_info: Dict[str, Tuple[int, int, int, int, str]]
+    motor_info: Dict[str, jarvisFileReading.MotorInfo]
 
-    def __init__(self, com: Union[serial.Serial, None] = None):
+    def __init__(self, com: Optional[serial.Serial] = None):
         super().__init__(com)
         self.motor_info = jarvisFileReading.get_config()["motors"]
 
-    def get_motor_info(self) -> Dict[str, Tuple[int, int, int, int, str]]:
+    def get_motor_info(self) -> Dict[str, jarvisFileReading.MotorInfo]:
         return self.motor_info
 
     def get_motor_names(self) -> List[str]:
@@ -59,6 +59,10 @@ class JarvisMotors(JarvisComms):
     def get_motor_full_name(self, name: str) -> str:
         assert name in self.motor_info
         return self.motor_info[name][4]
+    
+    def get_motor_locked(self, name: str) -> bool:
+        assert name in self.motor_info
+        return self.motor_info[name][5]
 
     def set_motor_config(self, motor: str, setting: Literal["min", "max", "home"], val: int):
         tmp = self.motor_info[motor]
@@ -83,10 +87,33 @@ class JarvisMotors(JarvisComms):
         tmp = self.motor_info[name]
         assert tmp[1] <= amt and tmp[2] >= amt, f"[{name}] wanted: {amt}, min: {tmp[1]}, max: {tmp[2]}"
 
+        if tmp[5]:
+            raise AssertionError(f"[{name}] is locked. Please unlock motor to use.")
+        
         if self._debug:
             print(f"Moving motor {name} to {amt}.\n\tRaw data: {tmp[0] + amt}")
         else:
             self._write_read(str(tmp[0] + amt))
+
+    def lock_motor(self, motor: str, val: bool):
+        assert motor in self.motor_info, f"{motor} is not in the config's motors."
+
+        if self._debug:
+            if val:
+                print(f"Locking motor {motor}.")
+            else:
+                print(f"Unlocking motor {motor}.")
+            
+
+        self.motor_info[motor][5] = val # type: ignore
+        jarvisFileReading.write_motor_config(motor, self.motor_info[motor])
+
+        # debugging, change to simple assignment when confirmed working.
+        self.motor_info = jarvisFileReading.get_config()["motors"]
+
+
+        
+
 
 
 class JarvisOutputs(JarvisComms):
@@ -97,7 +124,7 @@ class JarvisOutputs(JarvisComms):
     outputs: Dict[str, int]
     engine: pyttsx3.Engine
 
-    def __init__(self, com: Union[serial.Serial, None] = None, engine: Union[pyttsx3.Engine, None] = None):
+    def __init__(self, com: Optional[serial.Serial] = None, engine: Union[pyttsx3.Engine, None] = None):
         super().__init__(com)
         self.outputs = jarvisFileReading.get_config()["outputs"]
         if engine:

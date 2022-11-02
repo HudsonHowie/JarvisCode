@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 import serial
 from typing_extensions import Literal
@@ -21,7 +21,7 @@ class JarvisManager:
 
 
     @classmethod
-    def from_socket(cls, socket: Union[serial.Serial, None]):
+    def from_socket(cls, socket: Optional[serial.Serial] = None):
         return cls(JarvisMotors(socket), JarvisOutputs(socket), JarvisBrain())
 
     
