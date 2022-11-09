@@ -2,11 +2,19 @@
 #include <Adafruit_PWMServoDriver.h>
 const int ledPin = 13; 
 
+#include "BluetoothSerial.h"
+#include "esp_bt_device.h"
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
 // setting PWM properties
 const int ledChannel = 0;
 const int resolution = 8;
 Adafruit_PWMServoDriver array1 = Adafruit_PWMServoDriver(0x40);
 Adafruit_PWMServoDriver array2 = Adafruit_PWMServoDriver(0x41);
+int  B;
+#define ONBOARD_LED  2
 //Logic id numbs
 //left
 int LS = 0;
@@ -64,27 +72,49 @@ int HPC = 4;
 int HTC = 5;
 int JAC = 6;
 int freq = 0;
+BluetoothSerial SerialBT;
+void printDeviceAddress(){
+  const uint8_t* point = esp_bt_dev_get_address();
+  for (int l=0; l<6;l++){
+    char str[3];
+    sprintf(str, "%02x", (int)point[l]);
+    Serial.print(str);
+   if(1<5){
+    Serial.print(":");
+   }
+  }
+}
 void setup() {
-Serial.begin(9600);
-Serial.println("System Ready");
-array1.begin();
-array1.setPWMFreq(60); 
-array1.setOscillatorFrequency(27000000);
-array2.begin();
-array2.setPWMFreq(60); 
-array2.setOscillatorFrequency(27000000);
-
-
+  Serial.begin(115200);
+  Serial.println("System Ready");
+  array1.begin();
+  array1.setPWMFreq(60); 
+  array1.setOscillatorFrequency(27000000);
+  array2.begin();
+  array2.setPWMFreq(60); 
+  array2.setOscillatorFrequency(27000000);
+  Serial.begin(115200);
+  SerialBT.begin("ESP32test"); //Bluetooth device name
+  Serial.println("The device started, now you can pair it with bluetooth!");
+  Serial.print("BT Mac: ");
+  printDeviceAddress();
+  pinMode(ONBOARD_LED,OUTPUT);
 }
 
 void loop() {
   //obtaining data from comm port
-  int B = Serial.parseInt();
+  int B = SerialBT.parseInt(); 
+  
+
   //Motor Movement Protocol
   //Left Shoulder
   if (B > LS && B < LX)
   {
     array1.setPWM(LSC, 0, (B - LS));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("LS confirmed  ");
     //Serial.println(B - LS);
   }
@@ -92,6 +122,10 @@ void loop() {
     if (B > LX && B < LY)
   {
     array1.setPWM(LXC, 0, (B - LX));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("LX confirmed  ");
     //Serial.println(B - LX);
   }
@@ -99,6 +133,10 @@ void loop() {
     if (B > LY && B < LB)
   {
     array1.setPWM(LYC, 0, (B - LY));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("LY confirmed  ");
     //Serial.println(B - LY);
   }
@@ -113,13 +151,21 @@ void loop() {
     if (B > LW && B < LT)
   {
     array1.setPWM(LWC, 0, (B - LW)); 
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("LW confirmed  ");
     //Serial.println(B - LW);  
   }
   // Left Thumb
     if (B > LT && B < LI)
   {
-    array1.setPWM(LTC, 0, (B - LT));   
+    array1.setPWM(LTC, 0, (B - LT));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW); 
     //Serial.print("LT confirmed  ");
     //Serial.println(B - LT);
   }
@@ -127,6 +173,10 @@ void loop() {
     if (B > LI && B < LM)
   {
     array1.setPWM(LIC, 0, (B - LI));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("LI confirmed  ");
     //Serial.println(B - LI);
   }
@@ -134,13 +184,21 @@ void loop() {
     if (B > LM && B < LR)
   {
     array1.setPWM(LMC, 0, (B - LM));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("LM confirmed  ");
     //Serial.println(B - LM);  
   }
   // Left Ring
     if (B > LR && B < LP)
   {
-    array1.setPWM(LRC, 0, (B - LR)); 
+    array1.setPWM(LRC, 0, (B - LR));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW); 
     //Serial.print("LR confirmed  ");
     //Serial.println(B - LR);  
   }
@@ -148,6 +206,10 @@ void loop() {
     if (B > LP && B < RS)
   {
     array1.setPWM(LPC, 0, (B - LP));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("LP confirmed  ");
     //Serial.println(B - LP);
   }
@@ -157,6 +219,10 @@ void loop() {
   if (B > RS && B < RXA)
   {
     array1.setPWM(RSC, 0, (B - RS));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RS confirmed  ");
     //Serial.println(B - RS);
   }
@@ -164,6 +230,10 @@ void loop() {
     if (B > RXA && B < RY)
   {
     array1.setPWM(RXC, 0, (B - RXA)); 
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RXA confirmed  ");
     //Serial.println(B - RXA);   
   }
@@ -172,6 +242,10 @@ void loop() {
     if (B > RY && B < RB)
   {
     array1.setPWM(RYC, 0, (B - RY));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RY confirmed  ");
     //Serial.println(B - RY);  
   }
@@ -179,6 +253,10 @@ void loop() {
     if (B > RB && B < RW)
   {
     array1.setPWM(RBC, 0, (B - RB)); 
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RB confirmed  ");
     //Serial.println(B - RB);  
   }
@@ -186,6 +264,10 @@ void loop() {
     if (B > RW && B < RT)
   {
     array1.setPWM(RWC, 0, (B - RW));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RW confirmed  ");
     //Serial.println(B - RW);  
   }
@@ -193,6 +275,10 @@ void loop() {
     if (B > RT && B < RI)
   {
     array1.setPWM(RTC, 0, (B - RT));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RT confirmed  ");
     //Serial.println(B - RT);   
   }
@@ -200,6 +286,10 @@ void loop() {
     if (B > RI && B < RM)
   {
     array2.setPWM(RIC, 0, (B - RI));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RI confirmed  ");
     //Serial.println(B - RI); 
   }
@@ -214,6 +304,10 @@ void loop() {
     if (B > RR && B < RP)
   {
     array2.setPWM(RRC, 0, (B - RR));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RR confirmed  ");
     //Serial.println(B - RR);  
   }
@@ -221,6 +315,10 @@ void loop() {
     if (B > RP && B < HP)
   {
     array2.setPWM(RPC, 0, (B - RP));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("RP confirmed  ");
     //Serial.println(B - RP);    
   }
@@ -229,6 +327,10 @@ void loop() {
     if (B > HP && B < HT)
   {
     array2.setPWM(HPC, 0, (B - HP));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("HP confirmed  ");
     //Serial.println(B - HP);  
   }
@@ -236,6 +338,10 @@ void loop() {
     if (B > HT && B < JA)
   {
     array2.setPWM(HTC, 0, (B - HT));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("HT confirmed  ");
     //Serial.println(B - HT);   
   }
@@ -243,6 +349,10 @@ void loop() {
     if (B > JA && B < SP )
   {
     array2.setPWM(JAC, 0, (B - JA));
+    delay(100);
+    digitalWrite(ONBOARD_LED,HIGH);
+    delay(100);
+    digitalWrite(ONBOARD_LED,LOW);
     //Serial.print("JA confirmed  ");
     //Serial.println(B - JA); 
   }
